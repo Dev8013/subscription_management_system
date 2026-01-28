@@ -74,15 +74,15 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        {/* Spending Trend Chart - Fixed for Mobile Overflow */}
+        {/* Spending Trend Chart - Optimized Scrollbar */}
         <div className="bg-white p-5 md:p-8 rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="flex justify-between items-center mb-10">
             <h4 className="text-lg font-bold text-slate-800">Spending Trend</h4>
             <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase">12 Month View</span>
           </div>
           
-          <div className="overflow-x-auto pb-6 -mx-1 px-1 custom-scrollbar">
-            <div className="h-56 md:h-64 flex items-end justify-between gap-2 min-w-[360px] md:min-w-0">
+          <div className="overflow-x-auto pb-4 custom-scrollbar">
+            <div className="h-56 md:h-64 flex items-end justify-between gap-2 min-w-[480px] md:min-w-0 px-2">
               {stats.trend.map((t, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center group relative h-full min-w-0">
                   <div className="flex-1 w-full flex flex-col justify-end">
@@ -95,7 +95,7 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
                       </div>
                     </div>
                   </div>
-                  <span className="text-[9px] md:text-[10px] font-black text-slate-400 mt-6 uppercase origin-center rotate-0 sm:rotate-0">
+                  <span className="text-[9px] md:text-[10px] font-black text-slate-400 mt-6 uppercase">
                     {t.month}
                   </span>
                 </div>
