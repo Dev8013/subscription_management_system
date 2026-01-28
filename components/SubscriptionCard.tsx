@@ -13,44 +13,44 @@ const SubscriptionCard: React.FC<Props> = ({ sub, onDelete, onDraftEmail }) => {
   const isExpiring = sub.status === 'expiring';
   
   return (
-    <div className={`relative bg-white p-5 rounded-2xl shadow-sm border transition-all hover:shadow-md ${isExpiring ? 'border-rose-100 ring-1 ring-rose-50' : 'border-slate-100'}`}>
+    <div className={`relative bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border transition-all hover:shadow-md ${isExpiring ? 'border-rose-100 dark:border-rose-900 ring-1 ring-rose-50 dark:ring-rose-900/20' : 'border-slate-100 dark:border-slate-700'}`}>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${isExpiring ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-500'}`}>
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${isExpiring ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-500' : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
             {sub.name.charAt(0)}
           </div>
-          <div>
-            <h3 className="font-semibold text-slate-900 leading-tight">{sub.name}</h3>
-            <span className="text-xs text-slate-400 capitalize">{sub.category}</span>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 leading-tight truncate">{sub.name}</h3>
+            <span className="text-xs text-slate-400 dark:text-slate-500 capitalize">{sub.category}</span>
           </div>
         </div>
-        <div className="text-right">
-          <p className="font-bold text-slate-900">{sub.currency} {sub.price.toFixed(2)}</p>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest">{sub.billingCycle}</p>
+        <div className="text-right flex-shrink-0">
+          <p className="font-bold text-slate-900 dark:text-slate-100">{sub.currency} {sub.price.toFixed(2)}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest">{sub.billingCycle}</p>
         </div>
       </div>
 
-      <div className="mt-4 p-3 bg-slate-50 rounded-xl flex justify-between items-center">
+      <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex justify-between items-center">
         <div className="flex flex-col">
-          <span className="text-[10px] text-slate-400 uppercase font-bold">Ends in</span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">Ends in</span>
           <CountdownTimer endDate={sub.endDate} />
         </div>
         <div className="text-right">
-          <span className="text-[10px] text-slate-400 uppercase font-bold">Due Date</span>
-          <p className="text-xs font-semibold text-slate-600">{new Date(sub.endDate).toLocaleDateString()}</p>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">Due Date</span>
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{new Date(sub.endDate).toLocaleDateString()}</p>
         </div>
       </div>
 
       <div className="mt-4 flex space-x-2">
         <button 
           onClick={() => onDraftEmail(sub)}
-          className="flex-1 text-xs bg-indigo-50 text-indigo-600 font-semibold py-2 px-3 rounded-lg hover:bg-indigo-100 transition-colors"
+          className="flex-1 text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold py-2 px-3 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
         >
           Draft Reminder
         </button>
         <button 
           onClick={() => onDelete(sub.id)}
-          className="text-xs bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 font-semibold py-2 px-3 rounded-lg transition-all"
+          className="text-xs bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 font-semibold py-2 px-3 rounded-lg transition-all"
         >
           Delete
         </button>

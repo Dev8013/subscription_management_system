@@ -38,16 +38,16 @@ const CountdownTimer: React.FC<Props> = ({ endDate }) => {
   return (
     <div className="flex space-x-2 text-xs font-mono tabular-nums">
       <div className="flex flex-col items-center">
-        <span className="text-slate-900 font-bold">{timeLeft.days}d</span>
+        <span className="text-slate-900 dark:text-slate-100 font-bold">{timeLeft.days}d</span>
       </div>
       <div className="flex flex-col items-center">
-        <span className="text-slate-900 font-bold">{timeLeft.hours}h</span>
+        <span className="text-slate-900 dark:text-slate-100 font-bold">{timeLeft.hours}h</span>
       </div>
       <div className="flex flex-col items-center">
-        <span className="text-slate-900 font-bold">{timeLeft.minutes}m</span>
+        <span className="text-slate-900 dark:text-slate-100 font-bold">{timeLeft.minutes}m</span>
       </div>
       <div className="flex flex-col items-center">
-        <span className="text-slate-900 font-bold">{timeLeft.seconds}s</span>
+        <span className="text-slate-900 dark:text-slate-100 font-bold">{timeLeft.seconds}s</span>
       </div>
     </div>
   );

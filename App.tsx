@@ -41,72 +41,6 @@ const MOCK_DATA: Subscription[] = [
     endDate: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
     category: 'Work',
     status: 'expiring'
-  },
-  {
-    id: '4',
-    name: 'Adobe Creative Cloud',
-    price: 54.99,
-    currency: 'USD',
-    billingCycle: 'monthly',
-    startDate: '2023-02-10',
-    endDate: new Date(new Date().getTime() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'Design',
-    status: 'active'
-  },
-  {
-    id: '5',
-    name: 'ChatGPT Plus',
-    price: 20.00,
-    currency: 'USD',
-    billingCycle: 'monthly',
-    startDate: '2024-01-05',
-    endDate: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'AI',
-    status: 'active'
-  },
-  {
-    id: '6',
-    name: 'Disney+',
-    price: 139.99,
-    currency: 'USD',
-    billingCycle: 'yearly',
-    startDate: '2023-08-12',
-    endDate: new Date(new Date().getTime() + 120 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'Entertainment',
-    status: 'active'
-  },
-  {
-    id: '7',
-    name: 'Peloton App',
-    price: 44.00,
-    currency: 'USD',
-    billingCycle: 'monthly',
-    startDate: '2023-03-20',
-    endDate: new Date(new Date().getTime() + 12 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'Fitness',
-    status: 'active'
-  },
-  {
-    id: '8',
-    name: 'GitHub Copilot',
-    price: 10.00,
-    currency: 'USD',
-    billingCycle: 'monthly',
-    startDate: '2023-12-01',
-    endDate: new Date(new Date().getTime() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'Work',
-    status: 'active'
-  },
-  {
-    id: '9',
-    name: 'Xbox Game Pass',
-    price: 16.99,
-    currency: 'USD',
-    billingCycle: 'monthly',
-    startDate: '2024-02-15',
-    endDate: new Date(new Date().getTime() + 2.5 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'Gaming',
-    status: 'expiring'
   }
 ];
 
@@ -118,6 +52,23 @@ const App: React.FC = () => {
   const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
   const [emailDraft, setEmailDraft] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   // Sync status based on time
   useEffect(() => {
@@ -160,33 +111,67 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 transition-colors duration-300">
       <header className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <div className="flex items-center justify-between md:justify-start space-x-2 mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </div>
+              <span className="font-black text-indigo-600 tracking-tight text-xl">SubTracker Pro</span>
             </div>
-            <span className="font-black text-indigo-600 tracking-tight text-xl">SubTracker Pro</span>
+            
+            {/* Mobile Toggle */}
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="md:hidden p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+            >
+              {isDarkMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+              )}
+            </button>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Your Portfolio</h1>
-          <p className="text-slate-500 mt-1 text-sm md:text-base">Manage and optimize your digital lifestyle.</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Your Portfolio</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">Manage and optimize your digital lifestyle.</p>
         </div>
 
-        {/* Tab Switcher - Mobile Friendly */}
-        <div className="bg-white p-1 md:p-1.5 rounded-2xl shadow-sm border border-slate-100 flex w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          {/* Desktop Toggle */}
           <button 
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="hidden md:flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm hover:shadow-md transition-all active:scale-95"
           >
-            Dashboard
+            {isDarkMode ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
+                <span className="text-xs font-bold uppercase tracking-wider">Light Mode</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <span className="text-xs font-bold uppercase tracking-wider">Dark Mode</span>
+              </>
+            )}
           </button>
-          <button 
-            onClick={() => setActiveTab('analytics')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            Analytics
-          </button>
+
+          {/* Tab Switcher */}
+          <div className="bg-white dark:bg-slate-800 p-1 md:p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex w-full md:w-auto">
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+            >
+              Dashboard
+            </button>
+            <button 
+              onClick={() => setActiveTab('analytics')}
+              className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
+            >
+              Analytics
+            </button>
+          </div>
         </div>
       </header>
 
@@ -197,10 +182,10 @@ const App: React.FC = () => {
             <SubscriptionForm onAdd={handleAddSubscription} />
             
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-slate-800">Your Subscriptions</h2>
-              <div className="flex bg-slate-100/50 p-1 rounded-lg">
-                <button className="text-xs font-bold text-indigo-600 bg-white shadow-sm px-4 py-1.5 rounded-md">All</button>
-                <button className="text-xs font-bold text-slate-500 px-4 py-1.5 hover:text-slate-700">Upcoming</button>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Your Subscriptions</h2>
+              <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                <button className="text-xs font-bold text-indigo-600 bg-white dark:bg-slate-700 shadow-sm px-4 py-1.5 rounded-md">All</button>
+                <button className="text-xs font-bold text-slate-500 px-4 py-1.5 hover:text-slate-700 dark:hover:text-slate-300">Upcoming</button>
               </div>
             </div>
 
@@ -215,11 +200,11 @@ const App: React.FC = () => {
               ))}
               
               {subscriptions.length === 0 && (
-                <div className="col-span-full py-16 md:py-24 bg-white rounded-3xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 px-6 text-center">
-                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <div className="col-span-full py-16 md:py-24 bg-white dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 px-6 text-center">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                   </div>
-                  <p className="font-semibold text-slate-600">No subscriptions yet.</p>
+                  <p className="font-semibold text-slate-600 dark:text-slate-400">No subscriptions yet.</p>
                   <p className="text-sm mt-1">Add your first service using the Magic Fill bar above!</p>
                 </div>
               )}
@@ -237,9 +222,9 @@ const App: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
       />
 
-      <footer className="mt-12 py-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-400 text-sm">
+      <footer className="mt-12 py-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-400 dark:text-slate-500 text-sm">
         <div className="flex items-center space-x-2">
-           <div className="w-6 h-6 bg-slate-200 rounded flex items-center justify-center text-[10px] text-slate-500 font-bold">SP</div>
+           <div className="w-6 h-6 bg-slate-200 dark:bg-slate-800 rounded flex items-center justify-center text-[10px] text-slate-500 font-bold">SP</div>
            <p>© 2024 SubTracker Pro AI</p>
         </div>
         <div className="flex space-x-6 font-medium">

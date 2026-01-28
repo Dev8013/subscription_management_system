@@ -12,8 +12,8 @@ const EmailDraftModal: React.FC<Props> = ({ isOpen, content, onClose, subName })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 my-auto">
+    <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 my-auto">
         <div className="bg-indigo-600 p-6 md:p-8 flex justify-between items-start text-white relative">
           <div className="pr-8">
             <h3 className="text-xl md:text-2xl font-black mb-1">AI Reminder Draft</h3>
@@ -27,23 +27,23 @@ const EmailDraftModal: React.FC<Props> = ({ isOpen, content, onClose, subName })
           </button>
         </div>
         <div className="p-6 md:p-10">
-          <div className="bg-slate-50 border-2 border-slate-100 rounded-3xl p-5 md:p-8 text-slate-700 font-medium text-sm md:text-base leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-3xl p-5 md:p-8 text-slate-700 dark:text-slate-300 font-medium text-sm md:text-base leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar">
             {content || (
               <div className="flex flex-col items-center py-10 space-y-4">
                 <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-slate-400 font-bold animate-pulse uppercase tracking-widest text-[10px]">Consulting Gemini AI...</p>
+                <p className="text-slate-400 dark:text-slate-500 font-bold animate-pulse uppercase tracking-widest text-[10px]">Consulting Gemini AI...</p>
               </div>
             )}
           </div>
           <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3">
             <button 
               onClick={onClose} 
-              className="w-full sm:w-auto px-8 py-3.5 font-bold text-slate-400 hover:text-slate-600 transition-colors text-sm"
+              className="w-full sm:w-auto px-8 py-3.5 font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors text-sm"
             >
               Cancel
             </button>
             <button 
-              className="w-full sm:w-auto px-10 py-3.5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95 text-sm"
+              className="w-full sm:w-auto px-10 py-3.5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 dark:shadow-indigo-900/20 transition-all active:scale-95 text-sm"
               onClick={() => {
                 if(content) {
                   navigator.clipboard.writeText(content);
