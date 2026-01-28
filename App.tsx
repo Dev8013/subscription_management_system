@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Subscription, Notification } from './types';
+import React, { useState, useEffect } from 'react';
+import { Subscription } from './types';
 import DashboardStats from './components/DashboardStats';
 import SubscriptionCard from './components/SubscriptionCard';
 import SubscriptionForm from './components/SubscriptionForm';
 import EmailDraftModal from './components/EmailDraftModal';
+import AnalyticsTab from './components/AnalyticsTab';
 import { draftReminderEmail } from './services/geminiService';
 
 const MOCK_DATA: Subscription[] = [
@@ -43,8 +44,11 @@ const MOCK_DATA: Subscription[] = [
   }
 ];
 
+type Tab = 'dashboard' | 'analytics';
+
 const App: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(MOCK_DATA);
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
   const [emailDraft, setEmailDraft] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,7 +65,7 @@ const App: React.FC = () => {
         if (sub.status !== status) return { ...sub, status };
         return sub;
       }));
-    }, 10000); // Check status every 10 seconds
+    }, 10000);
     
     return () => clearInterval(interval);
   }, []);
@@ -102,44 +106,58 @@ const App: React.FC = () => {
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Your Portfolio</h1>
           <p className="text-slate-500 mt-2">Manage and optimize your digital lifestyle.</p>
         </div>
-        <div className="flex -space-x-2">
-           {[1,2,3,4].map(i => (
-             <img key={i} src={`https://picsum.photos/40/40?random=${i}`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User" />
-           ))}
-           <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center text-[10px] font-bold text-slate-400">+12</div>
+
+        {/* Tab Switcher */}
+        <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex self-start md:self-auto">
+          <button 
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Dashboard
+          </button>
+          <button 
+            onClick={() => setActiveTab('analytics')}
+            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Analytics
+          </button>
         </div>
       </header>
 
-      <DashboardStats subscriptions={subscriptions} />
-
-      <SubscriptionForm onAdd={handleAddSubscription} />
-
-      <div className="mb-10 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-800">Your Subscriptions</h2>
-        <div className="flex space-x-2">
-          <button className="text-sm font-semibold text-slate-400 px-3 py-1 hover:text-slate-600">All</button>
-          <button className="text-sm font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">Active</button>
-          <button className="text-sm font-semibold text-slate-400 px-3 py-1 hover:text-slate-600">Expiring</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {subscriptions.map(sub => (
-          <SubscriptionCard 
-            key={sub.id} 
-            sub={sub} 
-            onDelete={handleDelete}
-            onDraftEmail={handleDraftEmail}
-          />
-        ))}
-        
-        {subscriptions.length === 0 && (
-          <div className="col-span-full py-20 bg-white rounded-3xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
-            <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-            <p className="font-medium">No subscriptions yet. Use the form above to add your first one!</p>
+      {activeTab === 'dashboard' ? (
+        <>
+          <DashboardStats subscriptions={subscriptions} />
+          <SubscriptionForm onAdd={handleAddSubscription} />
+          
+          <div className="mb-10 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-800">Your Subscriptions</h2>
+            <div className="flex space-x-2">
+              <button className="text-sm font-semibold text-slate-400 px-3 py-1 hover:text-slate-600">All</button>
+              <button className="text-sm font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">Active</button>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {subscriptions.map(sub => (
+              <SubscriptionCard 
+                key={sub.id} 
+                sub={sub} 
+                onDelete={handleDelete}
+                onDraftEmail={handleDraftEmail}
+              />
+            ))}
+            
+            {subscriptions.length === 0 && (
+              <div className="col-span-full py-20 bg-white rounded-3xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+                <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <p className="font-medium">No subscriptions yet. Use the form above to add your first one!</p>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <AnalyticsTab subscriptions={subscriptions} />
+      )}
 
       <EmailDraftModal 
         isOpen={isModalOpen} 
