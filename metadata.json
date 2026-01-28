@@ -1,0 +1,8 @@
+{
+  "name": "subscription_management_system",
+  "description": "Subscription management system",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
