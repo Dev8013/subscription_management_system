@@ -15,6 +15,22 @@ export interface Subscription {
   lastReminderSent?: string; // ISO date string
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  lastLogin: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isVerifying: boolean;
+  tempEmail: string;
+  otp: string;
+}
+
 export interface ReminderLog {
   id: string;
   subscriptionId?: string; // Can be null for summary emails
@@ -23,6 +39,12 @@ export interface ReminderLog {
   sentAt: string;
   recipientEmail?: string;
   status: 'draft' | 'processed';
+}
+
+export interface SyncState {
+  isSyncing: boolean;
+  lastSyncedAt: string | null;
+  error: string | null;
 }
 
 export interface Notification {
