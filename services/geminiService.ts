@@ -43,8 +43,28 @@ export async function draftReminderEmail(sub: Subscription): Promise<string> {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Write a professional and friendly email notification for a user whose subscription to "${sub.name}" is expiring on ${new Date(sub.endDate).toLocaleDateString()}. 
-    The price is ${sub.price} ${sub.currency}. Remind them to renew to avoid service interruption.`,
+    The price is ${sub.price} ${sub.currency}. Remind them to renew to avoid service interruption. 
+    Subject: Action Required: Your ${sub.name} Subscription is Due Soon`,
   });
 
   return response.text || "Failed to generate reminder email.";
+}
+
+export async function draftUpcomingDuesSummary(subs: Subscription[]): Promise<string> {
+  const expiringSubs = subs.filter(s => s.status === 'expiring');
+  if (expiringSubs.length === 0) return "No immediate dues found.";
+
+  const ai = getGeminiClient();
+  const subList = expiringSubs.map(s => `- ${s.name}: ${s.price} ${s.currency} (Due: ${new Date(s.endDate).toLocaleDateString()})`).join('\n');
+  
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Act as a personal financial assistant. Write a summary email for the user highlighting their earliest upcoming dues:
+    ${subList}
+    
+    The tone should be helpful and organized. Categorize them and suggest which ones are high priority.
+    Subject: Summary: Upcoming Subscription Renewals for ${new Date().toLocaleDateString()}`,
+  });
+
+  return response.text || "Failed to generate summary email.";
 }

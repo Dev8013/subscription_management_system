@@ -12,6 +12,17 @@ export interface Subscription {
   category: string;
   status: 'active' | 'expiring' | 'expired';
   icon?: string;
+  lastReminderSent?: string; // ISO date string
+}
+
+export interface ReminderLog {
+  id: string;
+  subscriptionId?: string; // Can be null for summary emails
+  type: 'single' | 'summary';
+  content: string;
+  sentAt: string;
+  recipientEmail?: string;
+  status: 'draft' | 'processed';
 }
 
 export interface Notification {

@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Subscription } from './types';
+import { Subscription, ReminderLog } from './types';
 import DashboardStats from './components/DashboardStats';
 import SubscriptionCard from './components/SubscriptionCard';
 import SubscriptionForm from './components/SubscriptionForm';
 import EmailDraftModal from './components/EmailDraftModal';
 import AnalyticsTab from './components/AnalyticsTab';
 import MouseTrail from './components/MouseTrail';
+import ReminderCenter from './components/ReminderCenter';
 import { draftReminderEmail } from './services/geminiService';
 
 const MOCK_DATA: Subscription[] = [
@@ -49,10 +50,12 @@ type Tab = 'dashboard' | 'analytics';
 
 const App: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(MOCK_DATA);
+  const [reminderLogs, setReminderLogs] = useState<ReminderLog[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [selectedSub, setSelectedSub] = useState<Subscription | null>(null);
   const [emailDraft, setEmailDraft] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReminderCenterOpen, setIsReminderCenterOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -70,6 +73,34 @@ const App: React.FC = () => {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  // Automated Reminder Logic
+  useEffect(() => {
+    const scanForDues = async () => {
+      const expiring = subscriptions.filter(s => s.status === 'expiring' && !s.lastReminderSent);
+      if (expiring.length > 0) {
+        // Just take the first one to avoid spamming Gemini in one go
+        const sub = expiring[0];
+        const draft = await draftReminderEmail(sub);
+        
+        const newLog: ReminderLog = {
+          id: Math.random().toString(36).substr(2, 9),
+          subscriptionId: sub.id,
+          type: 'single',
+          content: draft,
+          sentAt: new Date().toISOString(),
+          status: 'processed'
+        };
+
+        setReminderLogs(prev => [newLog, ...prev]);
+        setSubscriptions(prev => prev.map(s => s.id === sub.id ? { ...s, lastReminderSent: new Date().toISOString() } : s));
+      }
+    };
+
+    const interval = setInterval(scanForDues, 60000); // Scan every minute
+    scanForDues(); // Initial scan
+    return () => clearInterval(interval);
+  }, [subscriptions]);
 
   // Sync status based on time
   useEffect(() => {
@@ -111,6 +142,8 @@ const App: React.FC = () => {
     setEmailDraft(draft);
   };
 
+  const expiringCount = subscriptions.filter(s => s.status === 'expiring').length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 transition-colors duration-300">
       <MouseTrail />
@@ -125,23 +158,41 @@ const App: React.FC = () => {
               <span className="font-black text-indigo-600 tracking-tight text-xl">SubTracker Pro</span>
             </div>
             
-            {/* Mobile Toggle */}
-            <button 
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="md:hidden p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
-            >
-              {isDarkMode ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
-            </button>
+            <div className="flex items-center space-x-2 md:hidden">
+              <button 
+                onClick={() => setIsReminderCenterOpen(true)}
+                className="p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 relative"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                {expiringCount > 0 && <span className="absolute top-0 right-0 w-3 h-3 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>}
+              </button>
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+              >
+                {isDarkMode ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14.5 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                )}
+              </button>
+            </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Your Portfolio</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">Manage and optimize your digital lifestyle.</p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          {/* Desktop Only reminder center toggle */}
+          <button 
+            onClick={() => setIsReminderCenterOpen(true)}
+            className="hidden md:flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 shadow-sm hover:shadow-md transition-all active:scale-95 border border-indigo-100 dark:border-indigo-800 relative"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            <span className="text-xs font-bold uppercase tracking-wider">Reminder Logs</span>
+            {expiringCount > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>}
+          </button>
+
           {/* Desktop Toggle */}
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -223,6 +274,14 @@ const App: React.FC = () => {
         content={emailDraft} 
         subName={selectedSub?.name || ''}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      <ReminderCenter 
+        isOpen={isReminderCenterOpen}
+        onClose={() => setIsReminderCenterOpen(false)}
+        logs={reminderLogs}
+        subscriptions={subscriptions}
+        onProcessReminder={(id) => {}}
       />
 
       <footer className="mt-12 py-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-400 dark:text-slate-500 text-sm">
