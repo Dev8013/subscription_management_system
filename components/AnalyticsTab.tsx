@@ -1,12 +1,16 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Subscription } from '../types';
 
 interface Props {
   subscriptions: Subscription[];
 }
 
+type ChartType = 'bar' | 'line';
+
 const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
+  const [chartType, setChartType] = useState<ChartType>('bar');
+
   const stats = useMemo(() => {
     const getMonthlyCost = (sub: Subscription) => {
       let monthly = sub.price;
@@ -43,6 +47,31 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
 
   const maxTrend = Math.max(...stats.trend.map(t => t.amount), 1);
 
+  // SVG Line Path Helper
+  const generateLinePaths = () => {
+    const width = 600;
+    const height = 200;
+    const padding = 20;
+    const usableWidth = width - padding * 2;
+    const usableHeight = height - padding * 2;
+    
+    const points = stats.trend.map((t, i) => {
+      const x = padding + (i * (usableWidth / (stats.trend.length - 1)));
+      const y = (height - padding) - (t.amount / maxTrend) * usableHeight;
+      return { x, y, amount: t.amount, month: t.month };
+    });
+
+    const linePath = points.reduce((acc, point, i) => 
+      i === 0 ? `M ${point.x},${point.y}` : `${acc} L ${point.x},${point.y}`, 
+    "");
+
+    const areaPath = `${linePath} L ${points[points.length-1].x},${height} L ${points[0].x},${height} Z`;
+
+    return { linePath, areaPath, points, chartHeight: height };
+  };
+
+  const { linePath, areaPath, points, chartHeight } = generateLinePaths();
+
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Summary Row */}
@@ -73,32 +102,112 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        {/* Spending Trend Chart */}
+        {/* Spending Trend Chart Section */}
         <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-          <div className="flex justify-between items-center mb-10">
-            <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200">Spending Trend</h4>
-            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-full uppercase">12 Month View</span>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+            <div>
+              <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200">Spending Trend</h4>
+              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter mt-0.5">Rolling 12-month projection</p>
+            </div>
+            <div className="flex bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-100 dark:border-slate-700">
+              <button 
+                onClick={() => setChartType('bar')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${chartType === 'bar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500'}`}
+              >
+                Bars
+              </button>
+              <button 
+                onClick={() => setChartType('line')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${chartType === 'line' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500'}`}
+              >
+                Line
+              </button>
+            </div>
           </div>
           
           <div className="overflow-x-auto pb-4 custom-scrollbar">
-            <div className="h-56 md:h-64 flex items-end justify-between gap-2 min-w-[480px] md:min-w-0 px-2">
-              {stats.trend.map((t, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center group relative h-full min-w-0">
-                  <div className="flex-1 w-full flex flex-col justify-end">
-                    <div 
-                      className="w-full bg-indigo-500/10 dark:bg-indigo-500/5 rounded-t-md md:rounded-t-lg transition-all duration-700 group-hover:bg-indigo-600 group-hover:shadow-lg group-hover:shadow-indigo-100 dark:group-hover:shadow-indigo-900 border-b-2 border-indigo-500 dark:border-indigo-400 relative"
-                      style={{ height: `${(t.amount / maxTrend) * 100}%`, minHeight: '4px' }}
-                    >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 shadow-xl">
-                        ${t.amount.toFixed(0)}
+            <div className="h-64 md:h-72 flex items-end justify-between min-w-[500px] md:min-w-0 px-2 relative">
+              {chartType === 'bar' ? (
+                // Bar Chart View
+                stats.trend.map((t, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center group relative h-full min-w-0">
+                    <div className="flex-1 w-full flex flex-col justify-end px-1 sm:px-2">
+                      <div 
+                        className="w-full bg-indigo-500/10 dark:bg-indigo-500/5 rounded-t-lg transition-all duration-700 group-hover:bg-indigo-600 group-hover:shadow-lg group-hover:shadow-indigo-100 dark:group-hover:shadow-indigo-900/40 border-b-2 border-indigo-500 dark:border-indigo-400 relative"
+                        style={{ height: `${(t.amount / maxTrend) * 100}%`, minHeight: '4px' }}
+                      >
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-10 shadow-xl font-bold">
+                          ${t.amount.toFixed(0)}
+                        </div>
                       </div>
                     </div>
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 mt-6 uppercase">
+                      {t.month}
+                    </span>
                   </div>
-                  <span className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 mt-6 uppercase">
-                    {t.month}
-                  </span>
+                ))
+              ) : (
+                // Line Chart View
+                <div className="w-full h-full flex flex-col">
+                  <div className="flex-1 relative overflow-visible">
+                    <svg viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                      <defs>
+                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <path d={areaPath} fill="url(#areaGradient)" className="transition-all duration-1000 ease-in-out" />
+                      <path d={linePath} fill="none" stroke="#6366f1" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-1000 ease-in-out" />
+                      
+                      {/* Interactive Points & Tooltips */}
+                      {points.map((p, i) => (
+                        <g key={i} className="group/point outline-none">
+                          {/* Vertical Guide Line */}
+                          <line 
+                            x1={p.x} 
+                            y1={p.y} 
+                            x2={p.x} 
+                            y2={chartHeight} 
+                            className="stroke-indigo-400/20 dark:stroke-indigo-400/10 stroke-[1px] opacity-0 group-hover/point:opacity-100 transition-opacity pointer-events-none" 
+                            strokeDasharray="4 2"
+                          />
+                          
+                          {/* Point marker */}
+                          <circle 
+                            cx={p.x} 
+                            cy={p.y} 
+                            r="5" 
+                            className="fill-white dark:fill-slate-800 stroke-indigo-500 stroke-[3px] transition-all group-hover/point:r-7 group-hover/point:fill-indigo-500 dark:group-hover/point:fill-indigo-400 cursor-pointer"
+                          />
+                          
+                          {/* Rich Premium Tooltip showing X (Month) and Y (Amount) */}
+                          <foreignObject x={p.x - 60} y={p.y - 85} width="120" height="75" className="opacity-0 group-hover/point:opacity-100 transition-all duration-300 pointer-events-none overflow-visible">
+                            <div className="bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 rounded-2xl shadow-2xl p-3 flex flex-col items-start border border-white/10 dark:border-black/5 animate-in slide-in-from-bottom-2 zoom-in-95 duration-300">
+                              <div className="flex justify-between w-full items-center mb-1">
+                                <span className="text-[9px] uppercase tracking-widest font-black opacity-60 leading-none">{p.month}</span>
+                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter mb-0.5">Estimated Cost</span>
+                                <span className="text-lg font-black tracking-tighter leading-none">${p.amount.toFixed(2)}</span>
+                              </div>
+                              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900/90 dark:border-t-white/90"></div>
+                            </div>
+                          </foreignObject>
+                        </g>
+                      ))}
+                    </svg>
+                  </div>
+                  <div className="flex justify-between w-full mt-6 px-[20px]">
+                    {stats.trend.map((t, i) => (
+                      <span key={i} className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">
+                        {t.month}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
