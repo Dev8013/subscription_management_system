@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "serve .",
-    "build": "echo 'Building SubTracker Pro...'"
+    "build": "true"
   },
   "engines": {
     "node": "20.x"
