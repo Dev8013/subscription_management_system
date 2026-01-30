@@ -1,12 +1,9 @@
 
 import { Subscription, ReminderLog } from '../types';
 
-/**
- * GOOGLE DRIVE SYNC SERVICE
- * Manages the connection to the user's private drive and file persistence.
- */
+declare const puter: any;
 
-const CONFIG_FILE_NAME = 'subtracker_pro_data.json';
+const STORAGE_KEY = 'subtracker_pro_v1_data';
 
 export interface AppData {
   subscriptions: Subscription[];
@@ -15,49 +12,37 @@ export interface AppData {
   updatedAt: string;
 }
 
-export class DriveSyncService {
-  private static instance: DriveSyncService;
-  private accessToken: string | null = null;
+export class PuterStorageService {
+  private static instance: PuterStorageService;
 
   private constructor() {}
 
   static getInstance() {
-    if (!DriveSyncService.instance) {
-      DriveSyncService.instance = new DriveSyncService();
+    if (!PuterStorageService.instance) {
+      PuterStorageService.instance = new PuterStorageService();
     }
-    return DriveSyncService.instance;
+    return PuterStorageService.instance;
   }
 
-  setToken(token: string) {
-    this.accessToken = token;
+  async syncToCloud(data: AppData): Promise<void> {
+    console.log('[PUTER STORAGE] Syncing to KV store...', data);
+    await puter.kv.set(STORAGE_KEY, JSON.stringify(data));
   }
 
-  /**
-   * Mock sync for the prototype environment
-   * Real implementation would use fetch('https://www.googleapis.com/drive/v3/files')
-   */
-  async syncToDrive(data: AppData): Promise<void> {
-    console.log('[DRIVE SYNC] Saving data to Google Drive...', data);
-    // Persist to local storage as a fallback/simulation
-    localStorage.setItem('subtracker_drive_sim', JSON.stringify(data));
-    await new Promise(resolve => setTimeout(resolve, 1200));
-  }
-
-  async fetchFromDrive(): Promise<AppData | null> {
-    console.log('[DRIVE SYNC] Fetching data from Google Drive...');
-    const saved = localStorage.getItem('subtracker_drive_sim');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  async fetchFromCloud(): Promise<AppData | null> {
+    console.log('[PUTER STORAGE] Fetching from KV store...');
+    const saved = await puter.kv.get(STORAGE_KEY);
     
     if (saved) {
-      return JSON.parse(saved);
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse Cloud data", e);
+        return null;
+      }
     }
     return null;
   }
-
-  async logout() {
-    this.accessToken = null;
-    localStorage.removeItem('subtracker_drive_sim');
-  }
 }
 
-export const driveSync = DriveSyncService.getInstance();
+export const cloudStorage = PuterStorageService.getInstance();

@@ -10,7 +10,8 @@ import MouseTrail from './components/MouseTrail';
 import ReminderCenter from './components/ReminderCenter';
 import LoginPortal from './components/LoginPortal';
 import { draftReminderEmail } from './services/geminiService';
-import { driveSync, AppData } from './services/driveService';
+import { cloudStorage, AppData } from './services/driveService';
+import { signOutPuter, getCurrentPuterUser } from './services/authService';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -30,6 +31,17 @@ const App: React.FC = () => {
     return false;
   });
 
+  // Check for existing Puter session on load
+  useEffect(() => {
+    const checkSession = async () => {
+      const existingUser = await getCurrentPuterUser();
+      if (existingUser) {
+        handleLogin(existingUser);
+      }
+    };
+    checkSession();
+  }, []);
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -40,9 +52,9 @@ const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Sync data to Drive whenever it changes
+  // Sync data to Cloud whenever it changes
   const performSync = useCallback(async (subs: Subscription[], logs: ReminderLog[]) => {
-    if (!user) return;
+    if (!user || user.id === 'dev-mode-user') return;
     setSyncState(prev => ({ ...prev, isSyncing: true }));
     try {
       const payload: AppData = {
@@ -51,7 +63,7 @@ const App: React.FC = () => {
         version: '1.0.0',
         updatedAt: new Date().toISOString()
       };
-      await driveSync.syncToDrive(payload);
+      await cloudStorage.syncToCloud(payload);
       setSyncState({ isSyncing: false, lastSyncedAt: new Date().toISOString(), error: null });
     } catch (err) {
       setSyncState(prev => ({ ...prev, isSyncing: false, error: 'Cloud Sync Failed' }));
@@ -93,19 +105,21 @@ const App: React.FC = () => {
   const handleLogin = async (loggedUser: User) => {
     setUser(loggedUser);
     setSyncState(prev => ({ ...prev, isSyncing: true }));
-    const data = await driveSync.fetchFromDrive();
-    if (data) {
-      setSubscriptions(data.subscriptions);
-      setReminderLogs(data.reminderLogs);
+    if (loggedUser.id !== 'dev-mode-user') {
+      const data = await cloudStorage.fetchFromCloud();
+      if (data) {
+        setSubscriptions(data.subscriptions);
+        setReminderLogs(data.reminderLogs);
+      }
     }
     setSyncState({ isSyncing: false, lastSyncedAt: new Date().toISOString(), error: null });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOutPuter();
     setUser(null);
     setSubscriptions([]);
     setReminderLogs([]);
-    driveSync.logout();
   };
 
   const handleAddSubscription = (newSub: Omit<Subscription, 'id' | 'status'>) => {
@@ -156,18 +170,17 @@ const App: React.FC = () => {
             {syncState.isSyncing && (
               <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 animate-pulse-soft">
                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                 <span className="text-[10px] font-black uppercase tracking-widest">Syncing Cloud</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest">Cloud Syncing</span>
               </div>
             )}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             {user.name ? `${user.name}'s Dashboard` : 'Your Dashboard'}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">Logged in as <span className="text-slate-800 dark:text-slate-200 font-bold">{user.email}</span></p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm md:text-base">Logged in via <span className="text-slate-800 dark:text-slate-200 font-bold">Puter Cloud</span></p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-          {/* User Profile / Logout */}
           <div className="flex items-center space-x-3 bg-white dark:bg-slate-800 p-1.5 pr-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm group">
             <img src={user.avatar} className="w-9 h-9 rounded-xl border-2 border-slate-50 dark:border-slate-900 shadow-sm" alt="User" />
             <button 
@@ -226,7 +239,7 @@ const App: React.FC = () => {
                     <svg className="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                   </div>
                   <p className="font-bold text-slate-600 dark:text-slate-400 uppercase text-xs tracking-widest">No Cloud Data Found</p>
-                  <p className="text-sm mt-2 opacity-60 font-medium">Start adding subscriptions to sync them to your Drive.</p>
+                  <p className="text-sm mt-2 opacity-60 font-medium">Start adding subscriptions to sync them to your Puter cloud.</p>
                 </div>
               )}
             </div>
@@ -242,9 +255,9 @@ const App: React.FC = () => {
       <footer className="mt-20 py-10 border-t border-slate-100 dark:border-slate-800 text-center">
          <div className="flex items-center justify-center gap-2 mb-4">
            <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cloud Encrypted Session Active</span>
+           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Puter Cloud Session Active</span>
          </div>
-         <p className="text-xs text-slate-400 dark:text-slate-600 font-medium">© 2024 SubTracker Pro AI. Built for privacy-first subscription management.</p>
+         <p className="text-xs text-slate-400 dark:text-slate-600 font-medium">© 2024 SubTracker Pro AI. Privacy-first storage by Puter.js.</p>
       </footer>
     </div>
   );

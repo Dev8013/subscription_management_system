@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubTracker Pro | Secure Sync</title>
+    <title>SubTracker Pro | Puter Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://js.puter.com/v2/"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -32,57 +31,16 @@
             background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
         }
 
-        /* Modern Custom Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* slate-300 */
+            background: #cbd5e1;
             border-radius: 20px;
             border: 2px solid transparent;
             background-clip: content-box;
         }
-        
-        .dark ::-webkit-scrollbar-thumb {
-            background: #334155; /* slate-700 */
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6366f1; /* indigo-500 */
-            border: 2px solid transparent;
-            background-clip: content-box;
-        }
-
-        /* Firefox */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 transparent;
-        }
-        .dark * {
-            scrollbar-color: #334155 transparent;
-        }
-
-        /* Custom Scrollbar for inner containers */
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 5px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #1e293b;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #6366f1;
-        }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
 
         @keyframes pulse-soft {
           0%, 100% { opacity: 1; transform: scale(1); }
