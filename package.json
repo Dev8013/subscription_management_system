@@ -1,3 +1,4 @@
+
 {
   "name": "subtracker-pro",
   "version": "1.0.0",
@@ -5,11 +6,12 @@
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "@google/genai": "^1.38.0"
+    "@google/genai": "^1.38.0",
+    "esbuild": "^0.24.2"
   },
   "scripts": {
     "start": "serve .",
-    "build": "true"
+    "build": "esbuild index.tsx --bundle --outfile=index.js --format=esm --minify --platform=browser --target=es2020 --external:react --external:react-dom --external:@google/genai"
   },
   "engines": {
     "node": "20.x"
