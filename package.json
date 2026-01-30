@@ -1,4 +1,3 @@
-
 {
   "name": "subtracker-pro",
   "version": "1.0.0",
@@ -13,6 +12,6 @@
     "build": "echo 'Building SubTracker Pro...'"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "20.x"
   }
 }
