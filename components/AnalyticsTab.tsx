@@ -1,6 +1,7 @@
 
-import React, { useMemo, useState } from 'react';
-import { Subscription } from '../types';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Subscription, Insight } from '../types';
+import { getSavingsInsights } from '../services/geminiService';
 
 interface Props {
   subscriptions: Subscription[];
@@ -10,6 +11,20 @@ type ChartType = 'bar' | 'line';
 
 const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
   const [chartType, setChartType] = useState<ChartType>('bar');
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      if (subscriptions.length > 0) {
+        setIsLoadingInsights(true);
+        const data = await getSavingsInsights(subscriptions);
+        setInsights(data);
+        setIsLoadingInsights(false);
+      }
+    };
+    fetchInsights();
+  }, [subscriptions.length]);
 
   const stats = useMemo(() => {
     const getMonthlyCost = (sub: Subscription) => {
@@ -101,6 +116,45 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
         </div>
       </div>
 
+      {/* AI Insights Panel */}
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 p-6 md:p-8 rounded-3xl border border-emerald-100 dark:border-emerald-900/40">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9l-.707.707M12 21V5" /></svg>
+          </div>
+          <div>
+            <h4 className="text-lg font-bold text-slate-800 dark:text-emerald-400">AI Savings Advisor</h4>
+            <p className="text-xs text-emerald-600/70 dark:text-emerald-500/50 font-bold uppercase tracking-widest">Portfolio Optimization Strategies</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {isLoadingInsights ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-32 bg-white dark:bg-slate-900/50 rounded-2xl animate-pulse border border-emerald-100/50 dark:border-emerald-900/20" />
+            ))
+          ) : (
+            insights.map((insight, i) => (
+              <div key={i} className="bg-white dark:bg-slate-900/80 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 hover:shadow-lg transition-all">
+                <div className="flex justify-between items-start mb-2">
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${insight.impact === 'high' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                    {insight.impact} IMPACT
+                  </span>
+                  <span className="text-emerald-600 font-bold text-sm">+${insight.potentialSavings}</span>
+                </div>
+                <h5 className="font-bold text-slate-800 dark:text-white text-sm mb-1">{insight.title}</h5>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{insight.description}</p>
+              </div>
+            ))
+          )}
+          {!isLoadingInsights && insights.length === 0 && (
+            <div className="col-span-full py-6 text-center text-slate-400 italic text-sm">
+              Add more subscriptions to generate AI optimization insights.
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Spending Trend Chart Section */}
         <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -163,7 +217,6 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
                       {/* Interactive Points & Tooltips */}
                       {points.map((p, i) => (
                         <g key={i} className="group/point outline-none">
-                          {/* Vertical Guide Line */}
                           <line 
                             x1={p.x} 
                             y1={p.y} 
@@ -172,16 +225,12 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
                             className="stroke-indigo-400/20 dark:stroke-indigo-400/10 stroke-[1px] opacity-0 group-hover/point:opacity-100 transition-opacity pointer-events-none" 
                             strokeDasharray="4 2"
                           />
-                          
-                          {/* Point marker */}
                           <circle 
                             cx={p.x} 
                             cy={p.y} 
                             r="5" 
                             className="fill-white dark:fill-slate-800 stroke-indigo-500 stroke-[3px] transition-all group-hover/point:r-7 group-hover/point:fill-indigo-500 dark:group-hover/point:fill-indigo-400 cursor-pointer"
                           />
-                          
-                          {/* Rich Premium Tooltip showing X (Month) and Y (Amount) */}
                           <foreignObject x={p.x - 60} y={p.y - 85} width="120" height="75" className="opacity-0 group-hover/point:opacity-100 transition-all duration-300 pointer-events-none overflow-visible">
                             <div className="bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 rounded-2xl shadow-2xl p-3 flex flex-col items-start border border-white/10 dark:border-black/5 animate-in slide-in-from-bottom-2 zoom-in-95 duration-300">
                               <div className="flex justify-between w-full items-center mb-1">
@@ -231,17 +280,8 @@ const AnalyticsTab: React.FC<Props> = ({ subscriptions }) => {
                     style={{ width: `${(cat.value / stats.monthlyTotal) * 100}%` }}
                   />
                 </div>
-                <div className="flex justify-between mt-1.5">
-                   <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{((cat.value / stats.monthlyTotal) * 100).toFixed(1)}% weight</p>
-                   <p className="text-[10px] text-slate-300 dark:text-slate-600 font-medium">Monthly cycle</p>
-                </div>
               </div>
             ))}
-            {stats.categoryArray.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-300 dark:text-slate-700">
-                <p className="text-sm font-bold uppercase tracking-widest">No Data Available</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

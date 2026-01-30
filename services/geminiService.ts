@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Subscription } from "../types";
+import { Subscription, Insight } from "../types";
 
 const API_KEY = process.env.API_KEY || "";
 
@@ -35,6 +35,42 @@ export async function parseSmartInput(input: string): Promise<Partial<Subscripti
   } catch (e) {
     console.error("Failed to parse AI response", e);
     return {};
+  }
+}
+
+export async function getSavingsInsights(subs: Subscription[]): Promise<Insight[]> {
+  if (subs.length === 0) return [];
+  const ai = getGeminiClient();
+  const subData = subs.map(s => `${s.name} (${s.price} ${s.currency} / ${s.billingCycle} - Category: ${s.category})`).join(', ');
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `Analyze these subscriptions for potential savings or overlaps: ${subData}. 
+    Provide 3 actionable insights in JSON format. 
+    Each insight must have a "title", "description", "impact" (low, medium, high), and "potentialSavings" (number).`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            description: { type: Type.STRING },
+            impact: { type: Type.STRING },
+            potentialSavings: { type: Type.NUMBER },
+          },
+          required: ["title", "description", "impact", "potentialSavings"]
+        }
+      }
+    }
+  });
+
+  try {
+    return JSON.parse(response.text || "[]");
+  } catch (e) {
+    console.error("Failed to parse Insights", e);
+    return [];
   }
 }
 

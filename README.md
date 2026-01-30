@@ -1,20 +1,23 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# SubTracker Pro: AI-Powered Subscription Intelligence
 
-This contains everything you need to run your app locally.
+SubTracker Pro is a sophisticated cloud-native application designed to centralize, analyze, and optimize your recurring digital expenses. Leveraging Puter Cloud for private storage and Gemini AI for renewal intelligence, it transforms passive billing into active financial management.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1DHU-4BlwigttznDZar25OA0HKmqOiWcy
+## Key Features
 
-## Run Locally
+- **Puter Cloud Sync**: Privacy-first data persistence using Puter.js KV storage.
+- **AI Magic Fill**: Instantly parse subscription details from natural language input.
+- **Intelligent Reminders**: Automated renewal alerts with AI-generated email drafts.
+- **Deep Analytics**: Visualization of spending trends, category distributions, and annual projections.
+- **Savings Advisor**: AI-driven insights that suggest optimization strategies for your portfolio.
+- **Data Portability**: Export your entire subscription history to CSV for external auditing.
 
-**Prerequisites:**  Node.js
+## Tech Stack
 
+- **Frontend**: React 19, Tailwind CSS, Puter.js
+- **Intelligence**: Google Gemini 3 Flash
+- **Infrastructure**: Vercel (Deployment), Puter (Auth & Storage)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Security & Privacy
+
+All subscription data is stored within your private Puter.js environment. No third-party servers (other than the AI inference layer) handle your sensitive financial data.

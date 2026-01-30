@@ -47,13 +47,11 @@ export interface SyncState {
   error: string | null;
 }
 
-export interface Notification {
-  id: string;
-  subscriptionId: string;
-  subscriptionName: string;
-  message: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'critical';
+export interface Insight {
+  title: string;
+  description: string;
+  impact: 'low' | 'medium' | 'high';
+  potentialSavings: number;
 }
 
 export interface DashboardStats {
