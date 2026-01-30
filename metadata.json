@@ -1,6 +1,10 @@
 {
-  "name": "subscription_management_system",
-  "description": "Subscription management system",
+  "name": "SubTracker Pro",
+  "short_name": "SubTracker",
+  "description": "Professional cloud-native subscription management with AI-powered renewal intelligence and Puter Cloud storage.",
+  "theme_color": "#4f46e5",
+  "background_color": "#f8fafc",
+  "display": "standalone",
   "requestFramePermissions": [
     "camera",
     "microphone"
